@@ -117,8 +117,7 @@ function imprimirTicket(pedido) {
 
 function descargarExcel() {
     // Definimos el encabezado del archivo CSV
-    // Incluimos un número fijo de columnas para los productos para que la estructura sea consistente
-    const maxProductos = 10; // Puedes cambiar este número si esperas más productos por pedido
+    const maxProductos = 10;
     let csvHeader = "Registro,Fecha,Total";
     for (let i = 1; i <= maxProductos; i++) {
         csvHeader += `,Producto ${i}`;
@@ -131,19 +130,16 @@ function descargarExcel() {
     historialVentas.forEach(venta => {
         const productosArray = venta.productos.split(', ');
         
-        // Creamos la fila base con los datos principales
         const fila = [
             venta.registro,
             venta.fecha,
             venta.total.toFixed(2)
         ];
 
-        // Agregamos cada producto en una columna separada
         for (let i = 0; i < maxProductos; i++) {
-            fila.push(productosArray[i] || ""); // Si no hay más productos, agregamos una celda vacía
+            fila.push(productosArray[i] || ""); 
         }
 
-        // Unimos todos los datos de la fila con comas y agregamos una nueva línea
         csvContent += fila.join(",") + "\n";
     });
 
