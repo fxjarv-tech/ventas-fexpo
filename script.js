@@ -47,7 +47,7 @@ function procesarPedido() {
     const nuevoPedido = {
         registro: numeroRegistro,
         fecha: fecha,
-        items: [...pedidoActual], // Guardamos una copia del detalle del pedido
+        items: [...pedidoActual],
         total: total
     };
     historialVentas.push(nuevoPedido);
@@ -118,22 +118,20 @@ function imprimirTicket(pedido) {
 }
 
 function descargarExcel() {
-    // Definimos el encabezado para el nuevo formato
-    const csvHeader = "Registro,Fecha,Producto,Precio_Unitario,Total_Pedido\n";
-    let csvContent = "data:text/csv;charset=utf-8," + csvHeader;
+    // Solución al problema de los separadores regionales en Excel
+    const csvHeader = "Registro;Fecha;Producto;Precio_Unitario;Total_Pedido\n";
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvHeader; // Agregamos BOM para compatibilidad con Excel
 
-    // Recorremos cada venta para generar filas
     historialVentas.forEach(venta => {
-        // Para cada item dentro de la venta, creamos una nueva fila
         venta.items.forEach(item => {
             const fila = [
                 venta.registro,
                 venta.fecha,
-                `"${item.nombre}"`, // Usamos comillas para evitar problemas con las comas en los nombres
-                item.precio.toFixed(2),
-                venta.total.toFixed(2)
+                `"${item.nombre}"`,
+                item.precio.toFixed(2).replace('.', ','), // Reemplazamos el punto por una coma para los decimales
+                venta.total.toFixed(2).replace('.', ',') // Reemplazamos el punto por una coma para los decimales
             ];
-            csvContent += fila.join(",") + "\n";
+            csvContent += fila.join(";") + "\n";
         });
     });
 
