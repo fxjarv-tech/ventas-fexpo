@@ -7,19 +7,29 @@ const totalPedidoEl = document.getElementById('total-pedido');
 const numeroRegistroEl = document.getElementById('numero-registro');
 const tablaVentasEl = document.querySelector('#tabla-ventas tbody');
 const selectProductoEl = document.getElementById('select-producto');
+const cantidadProductoEl = document.getElementById('cantidad-producto');
 
 function agregarProducto() {
     const valorSeleccionado = selectProductoEl.value;
+    const cantidad = parseInt(cantidadProductoEl.value, 10);
 
-    if (!valorSeleccionado) {
-        alert("Por favor, selecciona un producto.");
+    if (!valorSeleccionado || cantidad <= 0 || isNaN(cantidad)) {
+        alert("Por favor, selecciona un producto e ingresa una cantidad válida.");
         return;
     }
 
     const [nombre, precioStr] = valorSeleccionado.split('-');
     const precio = parseFloat(precioStr);
 
-    pedidoActual.push({ nombre, precio });
+    // Verificamos si el producto ya está en el pedido para solo actualizar la cantidad
+    const itemExistente = pedidoActual.find(item => item.nombre === nombre);
+
+    if (itemExistente) {
+        itemExistente.cantidad += cantidad;
+    } else {
+        pedidoActual.push({ nombre, precio, cantidad });
+    }
+    
     actualizarPedido();
 }
 
@@ -27,10 +37,11 @@ function actualizarPedido() {
     listaPedidoEl.innerHTML = '';
     let total = 0;
     pedidoActual.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
         const li = document.createElement('li');
-        li.textContent = `${item.nombre} - $${item.precio.toFixed(2)}`;
+        li.textContent = `${item.nombre} x${item.cantidad} - $${subtotal.toFixed(2)}`;
         listaPedidoEl.appendChild(li);
-        total += item.precio;
+        total += subtotal;
     });
     totalPedidoEl.textContent = total.toFixed(2);
 }
@@ -69,8 +80,8 @@ function limpiarPedido() {
 function actualizarHistorial() {
     tablaVentasEl.innerHTML = '';
     historialVentas.forEach(venta => {
+        const productosStr = venta.items.map(item => `${item.nombre} (x${item.cantidad})`).join(', ');
         const tr = document.createElement('tr');
-        const productosStr = venta.items.map(item => item.nombre).join(', ');
         tr.innerHTML = `
             <td>${venta.registro}</td>
             <td>${venta.fecha}</td>
@@ -84,7 +95,7 @@ function actualizarHistorial() {
 
 function imprimirTicket(pedido) {
     const ventanaImpresion = window.open('', '_blank');
-    const productosHtml = pedido.items.map(item => `<li>${item.nombre} - $${item.precio.toFixed(2)}</li>`).join('');
+    const productosHtml = pedido.items.map(item => `<li>${item.nombre} x${item.cantidad} - $${(item.precio * item.cantidad).toFixed(2)}</li>`).join('');
 
     ventanaImpresion.document.write(`
         <html>
@@ -118,9 +129,8 @@ function imprimirTicket(pedido) {
 }
 
 function descargarExcel() {
-    // Solución al problema de los separadores regionales en Excel
-    const csvHeader = "Registro;Fecha;Producto;Precio_Unitario;Total_Pedido\n";
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvHeader; // Agregamos BOM para compatibilidad con Excel
+    const csvHeader = "Registro;Fecha;Producto;Cantidad;Precio_Unitario;Total_Pedido\n";
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvHeader;
 
     historialVentas.forEach(venta => {
         venta.items.forEach(item => {
@@ -128,8 +138,9 @@ function descargarExcel() {
                 venta.registro,
                 venta.fecha,
                 `"${item.nombre}"`,
-                item.precio.toFixed(2).replace('.', ','), // Reemplazamos el punto por una coma para los decimales
-                venta.total.toFixed(2).replace('.', ',') // Reemplazamos el punto por una coma para los decimales
+                item.cantidad,
+                item.precio.toFixed(2).replace('.', ','),
+                venta.total.toFixed(2).replace('.', ',')
             ];
             csvContent += fila.join(";") + "\n";
         });
