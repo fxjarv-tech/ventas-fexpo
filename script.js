@@ -43,12 +43,11 @@ function procesarPedido() {
 
     const total = parseFloat(totalPedidoEl.textContent);
     const fecha = new Date().toLocaleDateString();
-    const productos = pedidoActual.map(item => item.nombre).join(', ');
 
     const nuevoPedido = {
         registro: numeroRegistro,
         fecha: fecha,
-        productos: productos,
+        items: [...pedidoActual], // Guardamos una copia del detalle del pedido
         total: total
     };
     historialVentas.push(nuevoPedido);
@@ -71,10 +70,11 @@ function actualizarHistorial() {
     tablaVentasEl.innerHTML = '';
     historialVentas.forEach(venta => {
         const tr = document.createElement('tr');
+        const productosStr = venta.items.map(item => item.nombre).join(', ');
         tr.innerHTML = `
             <td>${venta.registro}</td>
             <td>${venta.fecha}</td>
-            <td>${venta.productos}</td>
+            <td>${productosStr}</td>
             <td>$${venta.total.toFixed(2)}</td>
             <td><button onclick="imprimirTicket(${JSON.stringify(venta)})">Imprimir</button></td>
         `;
@@ -84,6 +84,8 @@ function actualizarHistorial() {
 
 function imprimirTicket(pedido) {
     const ventanaImpresion = window.open('', '_blank');
+    const productosHtml = pedido.items.map(item => `<li>${item.nombre} - $${item.precio.toFixed(2)}</li>`).join('');
+
     ventanaImpresion.document.write(`
         <html>
         <head>
@@ -103,7 +105,7 @@ function imprimirTicket(pedido) {
             <hr>
             <h2>Productos</h2>
             <ul>
-                ${pedido.productos.split(', ').map(p => `<li>${p}</li>`).join('')}
+                ${productosHtml}
             </ul>
             <hr>
             <h3>Total: $${pedido.total.toFixed(2)}</h3>
@@ -116,31 +118,23 @@ function imprimirTicket(pedido) {
 }
 
 function descargarExcel() {
-    // Definimos el encabezado del archivo CSV
-    const maxProductos = 10;
-    let csvHeader = "Registro,Fecha,Total";
-    for (let i = 1; i <= maxProductos; i++) {
-        csvHeader += `,Producto ${i}`;
-    }
-    csvHeader += "\n";
-
+    // Definimos el encabezado para el nuevo formato
+    const csvHeader = "Registro,Fecha,Producto,Precio_Unitario,Total_Pedido\n";
     let csvContent = "data:text/csv;charset=utf-8," + csvHeader;
 
-    // Recorremos cada venta para crear una fila en el CSV
+    // Recorremos cada venta para generar filas
     historialVentas.forEach(venta => {
-        const productosArray = venta.productos.split(', ');
-        
-        const fila = [
-            venta.registro,
-            venta.fecha,
-            venta.total.toFixed(2)
-        ];
-
-        for (let i = 0; i < maxProductos; i++) {
-            fila.push(productosArray[i] || ""); 
-        }
-
-        csvContent += fila.join(",") + "\n";
+        // Para cada item dentro de la venta, creamos una nueva fila
+        venta.items.forEach(item => {
+            const fila = [
+                venta.registro,
+                venta.fecha,
+                `"${item.nombre}"`, // Usamos comillas para evitar problemas con las comas en los nombres
+                item.precio.toFixed(2),
+                venta.total.toFixed(2)
+            ];
+            csvContent += fila.join(",") + "\n";
+        });
     });
 
     const encodedUri = encodeURI(csvContent);
