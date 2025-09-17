@@ -116,17 +116,35 @@ function imprimirTicket(pedido) {
 }
 
 function descargarExcel() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Registro,Fecha,Productos,Total\n";
+    // Definimos el encabezado del archivo CSV
+    // Incluimos un número fijo de columnas para los productos para que la estructura sea consistente
+    const maxProductos = 10; // Puedes cambiar este número si esperas más productos por pedido
+    let csvHeader = "Registro,Fecha,Total";
+    for (let i = 1; i <= maxProductos; i++) {
+        csvHeader += `,Producto ${i}`;
+    }
+    csvHeader += "\n";
 
+    let csvContent = "data:text/csv;charset=utf-8," + csvHeader;
+
+    // Recorremos cada venta para crear una fila en el CSV
     historialVentas.forEach(venta => {
+        const productosArray = venta.productos.split(', ');
+        
+        // Creamos la fila base con los datos principales
         const fila = [
             venta.registro,
             venta.fecha,
-            `"${venta.productos}"`,
             venta.total.toFixed(2)
-        ].join(",");
-        csvContent += fila + "\n";
+        ];
+
+        // Agregamos cada producto en una columna separada
+        for (let i = 0; i < maxProductos; i++) {
+            fila.push(productosArray[i] || ""); // Si no hay más productos, agregamos una celda vacía
+        }
+
+        // Unimos todos los datos de la fila con comas y agregamos una nueva línea
+        csvContent += fila.join(",") + "\n";
     });
 
     const encodedUri = encodeURI(csvContent);
