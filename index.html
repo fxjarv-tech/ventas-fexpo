@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Ventas</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Control de Ventas</h1>
+
+        <div class="productos">
+            <h2>Selecciona un producto</h2>
+            <div class="item">
+                <select id="select-producto">
+                    <option value="Hamburguesa Clásica-5.00">Hamburguesa Clásica ($5.00)</option>
+                    <option value="Hamburguesa con Queso-6.50">Hamburguesa con Queso ($6.50)</option>
+                    <option value="Hamburguesa Doble-8.00">Hamburguesa Doble ($8.00)</option>
+                    <option value="Papas Fritas-3.00">Papas Fritas ($3.00)</option>
+                    <option value="Papas Grandes-4.50">Papas Grandes ($4.50)</option>
+                    <option value="Soda Coca Cola-2.00">Soda Coca Cola ($2.00)</option>
+                    <option value="Jugo Natural-2.50">Jugo Natural ($2.50)</option>
+                </select>
+                <button onclick="agregarProducto()">Agregar</button>
+            </div>
+        </div>
+
+        <div class="pedido-actual">
+            <h2>Pedido Actual</h2>
+            <p>Número de Registro: <span id="numero-registro">1</span></p>
+            <ul id="lista-pedido"></ul>
+            <h3>Total: $<span id="total-pedido">0.00</span></h3>
+            <button onclick="procesarPedido()">Procesar Pedido</button>
+            <button onclick="limpiarPedido()">Limpiar Pedido</button>
+        </div>
+
+        <div class="historial-ventas">
+            <h2>Historial de Ventas</h2>
+            <table id="tabla-ventas">
+                <thead>
+                    <tr>
+                        <th>Registro</th>
+                        <th>Fecha</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button onclick="descargarExcel()">Descargar Excel</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
